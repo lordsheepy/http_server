@@ -37,29 +37,33 @@ class SplitHeaderTests(unittest.TestCase):
 
 class MapUriTests(unittest.TestCase):
 
-    def setUp(self):
-        self.imguri = os.environ['PWD'] + "/webroot/images/JPEG_example.jpg"
-        self.diruri = os.environ['PWD'] + "/webroot/images"
+    # def setUp(self):
+    #     self.imguri = os.environ['PWD'] + "/webroot/images/JPEG_example.jpg"
+    #     self.diruri = os.environ['PWD'] + "/webroot/images"
 
-    def test_file_exist(self):
-        self.assertEqual(http_server.map_uri("/images/JPEG_example.jpg"),
-                         self.imguri)
+    # def test_file_exist(self):
+    #     self.assertEqual(http_server.map_uri("/images/JPEG_example.jpg"),
+    #                      self.imguri)
 
-    def test_dir_exist(self):
-        self.assertEqual(http_server.map_uri("/images"), self.diruri)
+    # def test_dir_exist(self):
+    #     self.assertEqual(http_server.map_uri("/images"), self.diruri)
 
-    def test_not_exist(self):
-        self.assertRaises(http_server.NotFoundError, http_server.map_uri,
-                          "sklfjdh")
+    # def test_not_exist(self):
+    #     self.assertRaises(http_server.NotFoundError, http_server.map_uri,
+    #                       "sklfjdh")
 
-    def tearDown(self):
+    # def tearDown(self):
         pass
 
 
 class BuildResponseTests(unittest.TestCase):
 
-    def test1(self):
-        pass
+    def setUp(self):
+        self.rawmeth = str(repr(405))
+        self.raw404 = str(repr(404))
+        self.raw = "123456790 - qwertyuiop - asdfghjkl- zxcvbnm."
+        self.img = open('/webroot/images/JPEG_example.jpg', 'rb').read(32)
+        #  self.img = self.img.read()
 
 
 if __name__ == "__main__":

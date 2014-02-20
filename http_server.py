@@ -1,5 +1,4 @@
 #! /usr/bin/env python
-
 import socket
 import email.utils
 import os
@@ -7,7 +6,6 @@ from mimetypes import guess_type
 
 
 def start_server():
-    #open server socket, bind, listen, infinite running loop
     server_socket = socket.socket(socket.AF_INET,
                                   socket.SOCK_STREAM,
                                   socket.IPPROTO_IP)
@@ -57,7 +55,6 @@ def parse_method(header):
 
 
 def map_uri(uri):
-    #use os module to map the URI to the filesystem
     path = os.environ['PWD'] + '/webroot' + uri
     if os.path.isfile(path):
         return read_response(path)
@@ -68,8 +65,7 @@ def map_uri(uri):
 
 
 def read_response(pth):
-    #builds response/errors
-    f = pth.open()
+    f = open(pth, 'rb')
     response = f.read()
     f.close()
     return response
@@ -87,12 +83,12 @@ def build_response(raw, header, code=200):
     head = header[2] + (" %s %s" % ('code', d_code[code]))
     date = "Date: " + email.utils.formatdate()
     if code == 200:  # grabs mimetype from header URI
-        mt = guess_type(os.eviron['PWD'] + '/webroot' + header[1])[0]
-    if not mt:  #Grabs in the event of a directory or error code
+        mt = guess_type(os.environ['PWD'] + '/webroot' + header[1])[0]
+    if not mt:  # Grabs in the event of a directory or error code
         mt = 'text/plain'
     mtype = "Content-Type: " + mt
     flen = "Content-Length: " + str(len(raw))
-    result = '\r\n'.join(head, date, mtype, flen, raw)
+    result = '\r\n'.join([head, date, mtype, flen, '\r\n', raw])
     return result
 
 
@@ -103,3 +99,7 @@ class HttpError(Exception):
 
     def __str__(self):
         return repr(self.value)
+
+
+if __name__ == "__main__":
+    start_server()
