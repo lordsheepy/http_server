@@ -95,8 +95,12 @@ def build_response(raw, header):
     return result
 
 
-def error_builder(code):
-    pass
+def error_builder(err, header):
+    d_err = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
+    head = ' '.join(header[2], str(err.value), d_err[err.value])
+    date = "Date: " + email.utils.formatdate()
+    result = '\r\n'.join(head, date)
+    return result
 
 
 class HttpError(Exception):
