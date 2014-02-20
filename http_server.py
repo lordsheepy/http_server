@@ -3,7 +3,7 @@
 import socket
 import email.utils
 import os
-import mimetypes
+from mimetypes import guess_type
 
 
 def start_server():
@@ -11,15 +11,12 @@ def start_server():
     server_socket = socket.socket(socket.AF_INET,
                                   socket.SOCK_STREAM,
                                   socket.IPPROTO_IP)
-    server_socket.bind(("127.0.0.1", 80))
+    server_socket.bind(("127.0.0.1", 50000))
     server_socket.listen(1)
 
     while True:  # endless loop to permit server to continue echo function
         conn, addr = server_socket.accept()
-        try:
-            response = handle_connection(conn, addr)
-        except:
-            response = error_builder(HttpError.value)
+        response = handle_connection(conn, addr)
         socket.sendall(response)
         conn.close()
 
@@ -31,9 +28,8 @@ def handle_connection(conn, addr):
         parse_method(msg_split[0])
         responseraw = map_uri(msg_split[1])
     except HttpError:
-        raise HttpError(HttpError.value)
+        return build_response(str(HttpError), msg_split, HttpError.value)
     return build_response(responseraw, msg_split)
-
 
 
 def recv_data(connection):
@@ -47,7 +43,7 @@ def recv_data(connection):
 
 
 def split_header(data):
-    #splits data and maps method, uri, protocol, body to indicies [0,1,2,3]
+    #splits data and maps [method, uri, protocol, body] to indicies [0,1,2,3]
     splitdata = data.split('\r\n', 1)
     splitheader = splitdata[0].split(' ', 3)
     return splitheader
@@ -55,7 +51,7 @@ def split_header(data):
 
 def parse_method(header):
     if header == 'GET':
-        break
+        return
     else:
         raise HttpError(405)
 
@@ -85,22 +81,26 @@ def translate_dir(pth):
     return response
 
 
-def build_response(raw, header):
-    head = header[2] + " 200 OK "
+def build_response(raw, header, code=200):
+    d_code = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
+    head = header[2] + (" %s %s" % ('code', d_code[code]))
     date = "Date: " + email.utils.formatdate()
-    mtype = "Type: " + mimetypes.guess(os.eviron['PWD'] +
-                                       '/webroot' + header[1])
-    flen = "Length: " + str(len(raw))
+    if guess_type(os.eviron['PWD'] + '/webroot' + header[1]):
+        mt = guess_type(os.eviron['PWD'] + '/webroot' + header[1])[0]
+    else:
+        mt = 'text/plain'
+    mtype = "Content-Type: " + mt
+    flen = "Content-Length: " + str(len(raw))
     result = '\r\n'.join(head, date, mtype, flen, raw)
     return result
 
 
-def error_builder(err, header):
-    d_err = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
-    head = ' '.join(header[2], str(err.value), d_err[err.value])
-    date = "Date: " + email.utils.formatdate()
-    result = '\r\n'.join(head, date)
-    return result
+# def error_builder(err, header):
+#     d_err = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
+#     head = ' '.join(header[2], str(err.value), d_err[err.value])
+#     date = "Date: " + email.utils.formatdate()
+#     result = '\r\n'.join(head, date)
+#     return result
 
 
 class HttpError(Exception):
