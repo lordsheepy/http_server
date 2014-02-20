@@ -3,6 +3,7 @@
 import socket
 import email.utils
 import os
+import mimetypes
 
 
 def start_server():
@@ -15,9 +16,24 @@ def start_server():
 
     while True:  # endless loop to permit server to continue echo function
         conn, addr = server_socket.accept()
-        message = recv_data(conn)
-        msg_split = split_header(message)
+        try:
+            response = handle_connection(conn, addr)
+        except:
+            response = error_builder(HttpError.value)
+        socket.sendall(response)
         conn.close()
+
+
+def handle_connection(conn, addr):
+    message = recv_data(conn)
+    msg_split = split_header(message)
+    try:
+        parse_method(msg_split[0])
+        responseraw = map_uri(msg_split[1])
+    except HttpError:
+        raise HttpError(HttpError.value)
+    return build_response(responseraw, msg_split)
+
 
 
 def recv_data(connection):
@@ -31,29 +47,59 @@ def recv_data(connection):
 
 
 def split_header(data):
-    #splits data and returns method, URI, protocol
+    #splits data and maps method, uri, protocol, body to indicies [0,1,2,3]
     splitdata = data.split('\r\n', 1)
     splitheader = splitdata[0].split(' ', 3)
     return splitheader
+
+
+def parse_method(header):
+    if header == 'GET':
+        break
+    else:
+        raise HttpError(405)
 
 
 def map_uri(uri):
     #use os module to map the URI to the filesystem
     path = os.environ['PWD'] + '/webroot' + uri
     if os.path.isfile(path):
-        return path
+        return read_response(path)
     elif os.path.isdir(path):
-        return path
+        return translate_dir(path)
     else:
-        raise NotFoundError(404)
+        raise HttpError(404)
 
 
-def build_response():
+def read_response(pth):
     #builds response/errors
+    f = pth.open()
+    response = f.read()
+    f.close()
+    return response
+
+
+def translate_dir(pth):
+    d = os.listdir(pth)
+    response = '\r\n'.join(d)
+    return response
+
+
+def build_response(raw, header):
+    head = header[2] + " 200 OK "
+    date = "Date: " + email.utils.formatdate()
+    mtype = "Type: " + mimetypes.guess(os.eviron['PWD'] +
+                                       '/webroot' + header[1])
+    flen = "Length: " + str(len(raw))
+    result = '\r\n'.join(head, date, mtype, flen, raw)
+    return result
+
+
+def error_builder(code):
     pass
 
 
-class NotFoundError(Exception):
+class HttpError(Exception):
 
     def __init__(self, value):
         self.value = value
