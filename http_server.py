@@ -29,10 +29,12 @@ def recv_data(connection):
             return msg
 
 
-def parse_header(method):
+def parse_header(data):
     #take message, split, then parsemethod and determine whether okay or
     #raise Exception
-    pass
+    splitdata = data.split('\r\n', 1)
+    splitheader = splitdata[0].split(' ', 3)
+    return splitheader
 
 
 def map_uri(uri):
