@@ -38,8 +38,8 @@ class SplitHeaderTests(unittest.TestCase):
 class MapUriTests(unittest.TestCase):
 
     def setUp(self):
-        self.imguri = "/webroot/images/JPEG_example.jpg"
-        self.diruri = "/webroot/images"
+        self.imguri = os.environ['PWD'] + "/webroot/images/JPEG_example.jpg"
+        self.diruri = os.environ['PWD'] + "/webroot/images"
 
     def test_file_exist(self):
         self.assertEqual(http_server.map_uri("/images/JPEG_example.jpg"),
@@ -47,6 +47,10 @@ class MapUriTests(unittest.TestCase):
 
     def test_dir_exist(self):
         self.assertEqual(http_server.map_uri("/images"), self.diruri)
+
+    def test_not_exist(self):
+        self.assertRaises(http_server.NotFoundError, http_server.map_uri,
+                          "sklfjdh")
 
     def tearDown(self):
         pass

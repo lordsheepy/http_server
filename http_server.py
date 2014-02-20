@@ -39,7 +39,13 @@ def split_header(data):
 
 def map_uri(uri):
     #use os module to map the URI to the filesystem
-    pass
+    path = os.environ['PWD'] + '/webroot' + uri
+    if os.path.isfile(path):
+        return path
+    elif os.path.isdir(path):
+        return path
+    else:
+        raise NotFoundError(404)
 
 
 def build_response():
