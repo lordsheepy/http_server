@@ -82,25 +82,18 @@ def translate_dir(pth):
 
 
 def build_response(raw, header, code=200):
+    mt = None
     d_code = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
     head = header[2] + (" %s %s" % ('code', d_code[code]))
     date = "Date: " + email.utils.formatdate()
-    if guess_type(os.eviron['PWD'] + '/webroot' + header[1]):
+    if code == 200:  # grabs mimetype from header URI
         mt = guess_type(os.eviron['PWD'] + '/webroot' + header[1])[0]
-    else:
+    if not mt:  #Grabs in the event of a directory or error code
         mt = 'text/plain'
     mtype = "Content-Type: " + mt
     flen = "Content-Length: " + str(len(raw))
     result = '\r\n'.join(head, date, mtype, flen, raw)
     return result
-
-
-# def error_builder(err, header):
-#     d_err = {200: 'OK', 404: "Not Found", 405: "Method not allowed"}
-#     head = ' '.join(header[2], str(err.value), d_err[err.value])
-#     date = "Date: " + email.utils.formatdate()
-#     result = '\r\n'.join(head, date)
-#     return result
 
 
 class HttpError(Exception):
