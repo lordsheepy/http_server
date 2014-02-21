@@ -17,13 +17,26 @@ from email.utils import formatdate
 #         pass
 
 
+class MethodParseTests(unittest.TestCase):
+
+    def setUp(self):
+        self.get = 'GET'
+        self.post = 'POST'
+
+    def test_get(self):
+        self.assertEqual(http_server.parse_method(self.get), None)
+
+    def test_post(self):
+        self.assertRaises(http_server.parse_method(self.post))
+
+
 class SplitHeaderTests(unittest.TestCase):
 
     def setUp(self):
         self.recv = "GET /path/to/file/index.html HTTP/1.1 \r\n StuffThings"
         self.method = "GET"
         self.URI = "/path/to/file/index.html"
-        self.protocol = "HTTP/1.1"
+        self.protocol = "HTTP/1.1 "
 
     def test_split_method(self):
         self.assertEqual(self.method, http_server.split_header(self.recv)[0])
@@ -37,34 +50,41 @@ class SplitHeaderTests(unittest.TestCase):
 
 class MapUriTests(unittest.TestCase):
 
-    # def setUp(self):
-    #     self.imguri = os.environ['PWD'] + "/webroot/images/JPEG_example.jpg"
-    #     self.diruri = os.environ['PWD'] + "/webroot/images"
+    def setUp(self):
+        self.imguri = "webroot/images/JPEG_example.jpg"
+        self.diruri = "webroot/images"
 
     # def test_file_exist(self):
     #     self.assertEqual(http_server.map_uri("/images/JPEG_example.jpg"),
     #                      self.imguri)
 
-    # def test_dir_exist(self):
-    #     self.assertEqual(http_server.map_uri("/images"), self.diruri)
+    def test_dir_exist(self):
+        self.assertTrue(http_server.map_uri("/images"))
 
-    # def test_not_exist(self):
-    #     self.assertRaises(http_server.NotFoundError, http_server.map_uri,
-    #                       "sklfjdh")
+    def test_not_exist(self):
+        self.assertRaises(http_server.map_uri("sklfjdh"))
 
-    # def tearDown(self):
+    def tearDown(self):
         pass
 
 
 class BuildResponseTests(unittest.TestCase):
 
     def setUp(self):
-        self.rawmeth = str(repr(405))
-        self.raw404 = str(repr(404))
-        self.raw = "123456790 - qwertyuiop - asdfghjkl- zxcvbnm."
-        self.img = open('/webroot/images/JPEG_example.jpg', 'rb').read(32)
+        self.handle = http_server.handle_connection(
+            "GET /a_web_page.html HTTP/1.1 \r\n StuffThings")
+        self.handle_dir = http_server.handle_connection(
+            "GET / HTTP/1.1 \r\n StuffThings")
         #  self.img = self.img.read()
 
+    def test_response(self):
+        # self.assertEqual(http_server.handle_connection(
+        #   "GET /images/JPEG_example.jpg HTTP/1.1 \r\n StuffThings"),
+        #   'something')
+        self.assertEqual(self.handle, 'something')
+
+    def test_dir_response(self):
+        self.assertEqual(self.handle_dir, "something")
 
 if __name__ == "__main__":
     unittest.main()
